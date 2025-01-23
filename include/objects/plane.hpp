@@ -5,18 +5,14 @@
 #include <vecmath.h>
 #include <cmath>
 
-const static float EPSplane = 1e-8f;
-
 class Plane : public Object3D {
 public:
-    Plane() {
-        // do nothing
-    }
+    Plane() = delete;
 
+    // plane: <p, normal> = d
     Plane(const Vector3f &normal, float d, Material *m) : Object3D(m) {
         this->normal = normal.normalized();
         this->d = d;
-        // this->origin = normal * d;
     }
 
     ~Plane() override = default;
@@ -37,9 +33,10 @@ public:
     }
 
 protected:
-    // Vector3f origin;
     Vector3f normal;
     float d;
+
+    static constexpr float EPSplane = 1e-8f;
 };
 
 #endif // PLANE_H

@@ -1,6 +1,8 @@
 #ifndef OBJECT3D_H
 #define OBJECT3D_H
 
+#include <tiny_obj_loader.h>
+
 #include "ray.hpp"
 #include "hit.hpp"
 #include "material.hpp"

@@ -6,8 +6,11 @@
 class Light {
 public:
     Light() = default;
-
     virtual ~Light() = default;
+
+    /// check if the ray from p to the light source is blocked by any object
+    /// @param dist the distance the ray travelled
+    virtual bool isBlocked(const Vector3f &p, float dist) const = 0;
 
     virtual void getIllumination(const Vector3f &p, Vector3f &dir, Vector3f &col) const = 0;
 };
@@ -23,6 +26,10 @@ public:
     }
 
     ~DirectionalLight() override = default;
+
+    bool isBlocked(const Vector3f &p, float dist) const override {
+        return true;
+    }
 
     ///@param p unused in this function
     ///@param distanceToLight not well defined because it's not a point light
@@ -50,6 +57,11 @@ public:
     }
 
     ~PointLight() override = default;
+
+    bool isBlocked(const Vector3f &p, float dist) const override {
+        float realDist = (position - p).length();
+        return dist < realDist - 1e-6;
+    }
 
     void getIllumination(const Vector3f &p, Vector3f &dir, Vector3f &col) const override {
         dir = (position - p).normalized();

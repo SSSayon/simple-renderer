@@ -1,37 +1,40 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(PA1 CXX)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+PROJECT(final CXX)
+
+set(CMAKE_BUILD_TYPE Debug)
 
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
 
 ADD_SUBDIRECTORY(deps/vecmath)
+ADD_SUBDIRECTORY(deps/tinyobjloader)
 
-SET(PA1_SOURCES
-        src/image.cpp
-        src/main.cpp
-        src/mesh.cpp
-        src/scene_parser.cpp)
-
-SET(PA1_INCLUDES
-        include/camera.hpp
-        include/group.hpp
-        include/hit.hpp
-        include/image.hpp
-        include/light.hpp
-        include/material.hpp
-        include/mesh.hpp
-        include/object3d.hpp
-        include/plane.hpp
-        include/ray.hpp
-        include/scene_parser.hpp
-        include/sphere.hpp
-        include/transform.hpp
-        include/triangle.hpp
-        )
+FILE(GLOB SOURCES src/*.cpp)
+FILE(GLOB INCLUDES include/*.hpp)
 
 SET(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp")
 
-ADD_EXECUTABLE(${PROJECT_NAME} ${PA1_SOURCES} ${PA1_INCLUDES})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${INCLUDES})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} vecmath)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} tinyobjloader)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE include)
+
+# # Define source files for each executable
+# SET(MAIN_SOURCES ${SOURCES})
+# LIST(REMOVE_ITEM MAIN_SOURCES ${CMAKE_SOURCE_DIR}/src/main_whitted.cpp)
+
+# SET(MAIN_WHITTED_SOURCES ${SOURCES})
+# LIST(REMOVE_ITEM MAIN_WHITTED_SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp)
+
+# # Add executables
+# ADD_EXECUTABLE(final_main ${MAIN_SOURCES} ${INCLUDES})
+# ADD_EXECUTABLE(final_main_whitted ${MAIN_WHITTED_SOURCES} ${INCLUDES})
+
+# # Link libraries and set include directories for each executable
+# TARGET_LINK_LIBRARIES(final_main vecmath)
+# TARGET_INCLUDE_DIRECTORIES(final_main PRIVATE include)
+
+# TARGET_LINK_LIBRARIES(final_main_whitted vecmath)
+# TARGET_INCLUDE_DIRECTORIES(final_main_whitted PRIVATE include)

@@ -1,19 +1,20 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <cmath>
+
+#include <tiny_obj_loader.h>
 
 #include "scene_parser.hpp"
 #include "camera.hpp"
 #include "light.hpp"
 #include "material.hpp"
-#include "object3d.hpp"
-#include "group.hpp"
-#include "mesh.hpp"
-#include "sphere.hpp"
-#include "plane.hpp"
-#include "triangle.hpp"
-#include "transform.hpp"
+#include "objects/object3d.hpp"
+#include "objects/group.hpp"
+#include "objects/sphere.hpp"
+#include "objects/plane.hpp"
+#include "objects/triangle.hpp"
+#include "objects/transform.hpp"
+#include "sampler/sampler_header.h"
 
 #define DegreesToRadians(x) ((M_PI * x) / 180.0f)
 
@@ -221,26 +222,37 @@ void SceneParser::parseMaterials() {
     int count = 0;
     while (num_materials > count) {
         getToken(token);
-        if (!strcmp(token, "Material") ||
-            !strcmp(token, "PhongMaterial")) {
-            materials[count] = parseMaterial();
-        } else {
-            printf("Unknown token in parseMaterial: '%s'\n", token);
-            exit(0);
-        }
+        materials[count] = parseMaterial(token);
         count++;
     }
     getToken(token);
     assert (!strcmp(token, "}"));
 }
 
+Sampler *SceneParser::parseMaterialType(const char *typeName, MaterialType &materialType) {
+    if (!strcmp(typeName, "Phong")) {
+        materialType = MaterialType::Phong;
+        return nullptr;
+    } else if (!strcmp(typeName, "Reflective")) {
+        materialType = MaterialType::Reflective;
+        return new SamplerReflective();
+    } else if (!strcmp(typeName, "Refractive")) {
+        materialType = MaterialType::Refractive;
+        return new SamplerRefractive();
+    } else {
+        printf("Unknown material type: '%s'\n", typeName);
+        exit(0);
+    }
+}
 
-Material *SceneParser::parseMaterial() {
+Material *SceneParser::parseMaterial(const char *typeName) {
+    MaterialType materialType;
+    Sampler *sampler = parseMaterialType(typeName, materialType);
     char token[MAX_PARSER_TOKEN_LENGTH];
     char filename[MAX_PARSER_TOKEN_LENGTH];
     filename[0] = 0;
     Vector3f diffuseColor(1, 1, 1), specularColor(0, 0, 0);
-    float shininess = 0;
+    float shininess = 0, refractionIndex = 1;
     getToken(token);
     assert (!strcmp(token, "{"));
     while (true) {
@@ -251,6 +263,8 @@ Material *SceneParser::parseMaterial() {
             specularColor = readVector3f();
         } else if (strcmp(token, "shininess") == 0) {
             shininess = readFloat();
+        } else if (strcmp(token, "refractionIndex") == 0) {
+            refractionIndex = readFloat();
         } else if (strcmp(token, "texture") == 0) {
             // Optional: read in texture and draw it.
             getToken(filename);
@@ -259,7 +273,11 @@ Material *SceneParser::parseMaterial() {
             break;
         }
     }
-    auto *answer = new Material(diffuseColor, specularColor, shininess);
+    auto *answer = new Material(
+        materialType, sampler, 
+        diffuseColor, specularColor, shininess,
+        refractionIndex
+    );
     return answer;
 }
 
@@ -276,10 +294,10 @@ Object3D *SceneParser::parseObject(char token[MAX_PARSER_TOKEN_LENGTH]) {
         answer = (Object3D *) parsePlane();
     } else if (!strcmp(token, "Triangle")) {
         answer = (Object3D *) parseTriangle();
-    } else if (!strcmp(token, "TriangleMesh")) {
-        answer = (Object3D *) parseTriangleMesh();
     } else if (!strcmp(token, "Transform")) {
         answer = (Object3D *) parseTransform();
+    } else if (!strcmp(token, "TinyObj")) {
+        answer = (Object3D *) parseTinyObj();
     } else {
         printf("Unknown token in parseObject: '%s'\n", token);
         exit(0);
@@ -390,24 +408,6 @@ Triangle *SceneParser::parseTriangle() {
     return new Triangle(v0, v1, v2, current_material);
 }
 
-Mesh *SceneParser::parseTriangleMesh() {
-    char token[MAX_PARSER_TOKEN_LENGTH];
-    char filename[MAX_PARSER_TOKEN_LENGTH];
-    // get the filename
-    getToken(token);
-    assert (!strcmp(token, "{"));
-    getToken(token);
-    assert (!strcmp(token, "obj_file"));
-    getToken(filename);
-    getToken(token);
-    assert (!strcmp(token, "}"));
-    const char *ext = &filename[strlen(filename) - 4];
-    assert(!strcmp(ext, ".obj"));
-    Mesh *answer = new Mesh(filename, current_material);
-
-    return answer;
-}
-
 
 Transform *SceneParser::parseTransform() {
     char token[MAX_PARSER_TOKEN_LENGTH];
@@ -471,6 +471,50 @@ Transform *SceneParser::parseTransform() {
     assert (!strcmp(token, "}"));
     return new Transform(matrix, object);
 }
+
+
+Group *SceneParser::parseTinyObj() {
+    char token[MAX_PARSER_TOKEN_LENGTH];
+    getToken(token);
+    assert (!strcmp(token, "{"));
+
+    bool isSmooth = false;
+    getToken(token);
+    if (!strcmp(token, "Smooth")) {
+        isSmooth = true;
+        getToken(token);
+    }
+
+    std::string inputfile = token;
+    tinyobj::ObjReaderConfig reader_config;
+    reader_config.mtl_search_path = "./mesh"; // Path to material files
+
+    tinyobj::ObjReader reader;
+
+    if (!reader.ParseFromFile(inputfile, reader_config)) {
+        if (!reader.Error().empty()) {
+            std::cerr << "TinyObjReader: " << reader.Error();
+        }
+        exit(1);
+    }
+
+    if (!reader.Warning().empty()) {
+        std::cout << "TinyObjReader: " << reader.Warning();
+    }
+
+    auto& attrib = reader.GetAttrib();
+    auto& shapes = reader.GetShapes();
+    auto& materials = reader.GetMaterials();
+
+    assert (current_material != nullptr);
+    Group *answer = new Group(attrib, shapes, materials, current_material, isSmooth);
+
+    getToken(token);
+    assert (!strcmp(token, "}"));
+
+    return answer;
+}
+
 
 // ====================================================================
 // ====================================================================

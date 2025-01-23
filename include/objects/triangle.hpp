@@ -1,12 +1,11 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include "Vector2f.h"
 #include "Vector3f.h"
 #include "object3d.hpp"
 #include <vecmath.h>
 #include <cmath>
-
-const static float EPStriangle = 1e-8f;
 
 class Triangle: public Object3D {
 
@@ -14,10 +13,15 @@ public:
     Triangle() = delete;
 
     // a b c are three vertex positions of the triangle
-    Triangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Material* m) : Object3D(m) {
-        v1 = a;
-        v2 = b;
-        v3 = c;
+    Triangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Material* m,
+             const Vector3f& na = Vector3f::ZERO, const Vector3f& nb = Vector3f::ZERO, const Vector3f& nc = Vector3f::ZERO,
+             const Vector2f& ta = Vector2f::ZERO, const Vector2f& tb = Vector2f::ZERO, const Vector2f& tc = Vector2f::ZERO): 
+        Object3D(m) 
+    {
+        v1 = a; v2 = b; v3 = c;
+        vn1 = na; vn2 = nb; vn3 = nc;
+        uv1 = ta; uv2 = tb; uv3 = tc;
+
         normal = Vector3f::cross(v2 - v1, v3 - v1).normalized();
     }
 
@@ -46,14 +50,25 @@ public:
         float t = inv_det * Vector3f::dot(e2, o_minus_v1_cross_e1);
         if (t > h.getT() || t < tmin) return false;
 
-        h.set(t, material, (Vector3f::dot(normal, d) > 0) ? -normal : normal);
+        Vector3f n = normal;
+        if (vn1 != Vector3f::ZERO) {
+            n = (1 - u - v) * vn1 + u * vn2 + v * vn3;
+            n.normalize();
+        }
+
+        h.set(t, material, n);
         return true;
     }
 
-    Vector3f normal;
-
 protected:
-    Vector3f v1, v2, v3;
+    
+    Vector3f v1, v2, v3;    // vertex
+    Vector3f vn1, vn2, vn3; // vertex normal
+    Vector2f uv1, uv2, uv3; // vertex texture coordinate
+
+    Vector3f normal;        // face normal
+
+    static constexpr float EPStriangle = 1e-8f;
 };
 
 #endif // TRIANGLE_H

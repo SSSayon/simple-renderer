@@ -45,6 +45,14 @@ public:
         data[y * width + x] = color;
     }
 
+    void LinearToSRGB() {
+        for (int i = 0; i < width * height; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                data[i][j] = powf(data[i][j], 1.0f / 2.2f);
+            }
+        }
+    }
+
     static Image *LoadPPM(const char *filename);
 
     void SavePPM(const char *filename) const;

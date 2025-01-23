@@ -1,7 +1,6 @@
 #ifndef RAY_H
 #define RAY_H
 
-#include <cassert>
 #include <iostream>
 #include <Vector3f.h>
 
@@ -13,7 +12,7 @@ public:
     Ray() = delete;
     Ray(const Vector3f &orig, const Vector3f &dir) {
         origin = orig;
-        direction = dir;
+        direction = dir; // should NOT be normalized, for uses in Transform object
     }
 
     Ray(const Ray &r) {
@@ -33,10 +32,16 @@ public:
         return origin + direction * t;
     }
 
+    void originOffset() {
+        origin += direction * offset;
+    }
+
 private:
 
     Vector3f origin;
     Vector3f direction;
+
+    static constexpr float offset = 5e-4f;
 
 };
 

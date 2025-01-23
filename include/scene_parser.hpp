@@ -1,6 +1,7 @@
 #ifndef SCENE_PARSER_H
 #define SCENE_PARSER_H
 
+#include "sampler/sampler.hpp"
 #include <cassert>
 #include <vecmath.h>
 
@@ -64,7 +65,8 @@ private:
     Light *parsePointLight();
     Light *parseDirectionalLight();
     void parseMaterials();
-    Material *parseMaterial();
+    Sampler *parseMaterialType(const char *typeName, MaterialType &materialType);
+    Material *parseMaterial(const char *typeName);
     Object3D *parseObject(char token[MAX_PARSER_TOKEN_LENGTH]);
     Group *parseGroup();
     Sphere *parseSphere();
@@ -72,6 +74,7 @@ private:
     Triangle *parseTriangle();
     Mesh *parseTriangleMesh();
     Transform *parseTransform();
+    Group *parseTinyObj();
 
     int getToken(char token[MAX_PARSER_TOKEN_LENGTH]);
 

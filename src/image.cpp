@@ -152,14 +152,14 @@ Image* Image::LoadPPM(const char *filename) {
     int width = 0;
     int height = 0;  
     char tmp[100];
-    fgets(tmp,100,file); 
-    assert (strstr(tmp,"P6"));
-    fgets(tmp,100,file); 
-    assert (tmp[0] == '#');
-    fgets(tmp,100,file); 
+    assert(fgets(tmp,100,file) != NULL); 
+    assert(strstr(tmp,"P6"));
+    assert(fgets(tmp,100,file) != NULL); 
+    assert(tmp[0] == '#');
+    assert(fgets(tmp,100,file) != NULL); 
     sscanf(tmp,"%d %d",&width,&height);
-    fgets(tmp,100,file); 
-    assert (strstr(tmp,"255"));
+    assert(fgets(tmp,100,file) != NULL); 
+    assert(strstr(tmp,"255"));
     // the data
     Image *answer = new Image(width,height);
     // flip y so that (0,0) is bottom left corner

@@ -5,13 +5,10 @@
 #include "object3d.hpp"
 #include <utility>
 #include <vecmath.h>
-#include <cmath>
 
 class Sphere : public Object3D {
 public:
-    Sphere() {
-        // do nothing, please
-    }
+    Sphere() = delete;
 
     Sphere(const Vector3f &center, float radius, Material *material) : Object3D(material) {
         this->center = center;
@@ -25,31 +22,32 @@ public:
         Vector3f o = r.getOrigin();
         Vector3f d = r.getDirection();
         
+        Vector3f o_minus_center = o - center;
         float a = Vector3f::dot(d, d);
-        float b = 2 * Vector3f::dot(d, o - center);
-        float c = Vector3f::dot(o - center, o - center) - radius * radius;
+        float b = 2 * Vector3f::dot(d, o_minus_center);
+        float c = Vector3f::dot(o_minus_center, o_minus_center) - radius * radius;
 
         float delta = b * b - 4 * a * c;
-        if (delta < 0) return false;
+        if (delta < EPSsphere) return false;
 
-        float root_delta = std::sqrt(delta);
+        float root_delta = fsqrt(delta);
         float q = (b < 0) ? -0.5 * (b - root_delta) : -0.5 * (b + root_delta); 
         float t0 = q / a;
         float t1 = c / q;
         if (t0 > t1) std::swap(t0, t1);
-                        
-        if (t1 < 0) return false;
-        float t = (t0 < 0) ? t1 : t0;
-        if (t > h.getT() || t < tmin) return false;
 
-        Vector3f n = (r.pointAtParameter(t) - center).normalized();
-        h.set(t, material, n);
+        if (t0 < tmin) t0 = t1;
+        if (t0 < tmin || t0 > h.getT()) return false;
+
+        h.set(t0, material, (r.pointAtParameter(t0) - center).normalized());
         return true;
     }
 
 protected:
     float radius;
     Vector3f center;
+
+    static constexpr float EPSsphere = 1e-4;
 };
 
 

@@ -1,8 +1,8 @@
 #ifndef HIT_H
 #define HIT_H
 
+#include <iostream>
 #include <vecmath.h>
-#include "ray.hpp"
 
 class Material;
 
