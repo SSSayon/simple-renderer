@@ -9,9 +9,9 @@ public:
     SamplerRefractive() = default;
     ~SamplerRefractive() override = default;
 
-    bool sample(const Material *material, const Vector3f &dir, const Vector3f &normal,
-    /* return values */ Vector3f &dirOut) {
-        float cos_i = Vector3f::dot(dir, normal);
+    bool sample(const Material *material, const Vector3f &inDir, const Vector3f &normal,
+    /* return values */ Vector3f &outDir) {
+        float cos_i = Vector3f::dot(inDir, normal);
         float eta_i = 1.0f,  eta_t = material->getRefractionIndex();
         Vector3f n = normal;
 
@@ -20,20 +20,21 @@ public:
         float eta = eta_i / eta_t;
         float cos_t_squared = 1.0f - eta * eta * (1.0f - cos_i * cos_i);
 
-        if (cos_t_squared <= 0.0f) {
-            dirOut = -dir + 2.0f * cos_i * n;
-        } else {
-            dirOut = -eta * dir + (eta * cos_i - sqrtf(cos_t_squared)) * n;
+        if (cos_t_squared <= 0.0f) { // total internal reflection
+            outDir = -inDir + 2.0f * cos_i * n;
+        } else {                     // refraction
+            outDir = -eta * inDir + (eta * cos_i - sqrtf(cos_t_squared)) * n;
+            outDir.normalize();
         }
         return true;
     }
-    bool sample(const Material *material, const Vector3f &dir, const Vector3f &normal, std::mt19937 &rng,
-    /* return values */ Vector3f &dirOut, float &pdf) override {
+    bool sample(const Material *material, const Vector3f &inDir, const Vector3f &normal, std::mt19937 &rng,
+    /* return values */ Vector3f &outDir, float &pdf) override {
         pdf = -1.0f;
-        return sample(material, dir, normal, dirOut);
+        return sample(material, inDir, normal, outDir);
     }
 
-    float samplePdf(const Material *material, const Vector3f &dir, const Vector3f &normal) override {
+    float PDF(const Material *material, const Vector3f &inDir, const Vector3f &outDir, const Vector3f &normal) override {
         return -1.0f;
     }
 };

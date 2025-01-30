@@ -30,7 +30,7 @@ public:
         float delta = b * b - 4 * a * c;
         if (delta < EPSsphere) return false;
 
-        float root_delta = fsqrt(delta);
+        float root_delta = sqrtf(delta);
         float q = (b < 0) ? -0.5 * (b - root_delta) : -0.5 * (b + root_delta); 
         float t0 = q / a;
         float t1 = c / q;
@@ -41,6 +41,15 @@ public:
 
         h.set(t0, material, (r.pointAtParameter(t0) - center).normalized());
         return true;
+    }
+    bool intersect(const Ray &r, Hit &h, float tmin, float &pdf) override {
+        std::cerr << "Sphere::intersect method (with pdf) should NOT be called!" << std::endl;
+        exit(1);
+    }
+
+    Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
+        std::cerr << "Sphere::samplePoint method should NOT be called!" << std::endl;
+        exit(1);
     }
 
 protected:

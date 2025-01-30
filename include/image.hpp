@@ -39,16 +39,29 @@ public:
         }
     }
 
+    void divideAllPixels(int n) {
+        for (int i = 0; i < width * height; ++i) {
+            data[i] = data[i] / n;
+        }
+    }
+
     void SetPixel(int x, int y, const Vector3f &color) {
         assert(x >= 0 && x < width);
         assert(y >= 0 && y < height);
         data[y * width + x] = color;
     }
 
+    void AddPixel(int x, int y, const Vector3f &color) {
+        assert(x >= 0 && x < width);
+        assert(y >= 0 && y < height);
+        data[y * width + x] += color;
+    }
+
+    // see https://en.wikipedia.org/wiki/SRGB#Transformation
     void LinearToSRGB() {
         for (int i = 0; i < width * height; ++i) {
             for (int j = 0; j < 3; ++j) {
-                data[i][j] = powf(data[i][j], 1.0f / 2.2f);
+                data[i][j] = (data[i][j] <= 0.0031308f) ? 12.92f * data[i][j] : 1.055f * powf(data[i][j], 1.0f / 2.4f) - 0.055f;
             }
         }
     }

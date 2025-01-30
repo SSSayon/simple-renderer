@@ -1,4 +1,5 @@
 #include <cmath>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 
@@ -248,6 +249,14 @@ Vector3f Vector3f::cross( const Vector3f& v0, const Vector3f& v1 )
 Vector3f Vector3f::lerp( const Vector3f& v0, const Vector3f& v1, float alpha )
 {
 	return alpha * ( v1 - v0 ) + v0;
+}
+
+// static
+Vector3f Vector3f::clamp( const Vector3f& v, float low, float high )
+{
+	return Vector3f(std::max(low, std::min(high, v.x())),
+					std::max(low, std::min(high, v.y())),
+					std::max(low, std::min(high, v.z())));
 }
 
 // static

@@ -1,20 +1,24 @@
+#include "scene_parser.hpp"
+
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 
 #include <tiny_obj_loader.h>
 
-#include "scene_parser.hpp"
 #include "camera.hpp"
 #include "light.hpp"
-#include "material.hpp"
+#include "material/material.hpp"
+#include "material/material_light.hpp"
+#include "material/material_utils.hpp"
 #include "objects/object3d.hpp"
 #include "objects/group.hpp"
 #include "objects/sphere.hpp"
 #include "objects/plane.hpp"
 #include "objects/triangle.hpp"
 #include "objects/transform.hpp"
-#include "sampler/sampler_header.h"
+
 
 #define DegreesToRadians(x) ((M_PI * x) / 180.0f)
 
@@ -22,8 +26,9 @@ SceneParser::SceneParser(const char *filename) {
 
     // initialize some reasonable default values
     group = nullptr;
+    lightGroup = new Group();
     camera = nullptr;
-    background_color = Vector3f(0.5, 0.5, 0.5);
+    background_color = Vector3f(0.0f);
     num_lights = 0;
     lights = nullptr;
     num_materials = 0;
@@ -56,6 +61,7 @@ SceneParser::SceneParser(const char *filename) {
 SceneParser::~SceneParser() {
 
     delete group;
+    delete lightGroup;
     delete camera;
 
     int i;
@@ -63,10 +69,6 @@ SceneParser::~SceneParser() {
         delete materials[i];
     }
     delete[] materials;
-    for (i = 0; i < num_lights; i++) {
-        delete lights[i];
-    }
-    delete[] lights;
 }
 
 // ====================================================================
@@ -84,10 +86,10 @@ void SceneParser::parseFile() {
             parsePerspectiveCamera();
         } else if (!strcmp(token, "Background")) {
             parseBackground();
-        } else if (!strcmp(token, "Lights")) {
-            parseLights();
         } else if (!strcmp(token, "Materials")) {
             parseMaterials();
+        } else if (!strcmp(token, "Lights")) {
+            parseLights();
         } else if (!strcmp(token, "Group")) {
             group = parseGroup();
         } else {
@@ -124,9 +126,19 @@ void SceneParser::parsePerspectiveCamera() {
     getToken(token);
     assert (!strcmp(token, "height"));
     int height = readInt();
+
+    float aperture = 0.0f, focalLength = 1.0f;
     getToken(token);
+    if (!strcmp(token, "aperture")) {
+        aperture = readFloat();
+        getToken(token);
+        assert (!strcmp(token, "focalLength"));
+        focalLength = readFloat();
+        getToken(token);
+    }
+
     assert (!strcmp(token, "}"));
-    camera = new PerspectiveCamera(center, direction, up, width, height, angle_radians);
+    camera = new PerspectiveCamera(center, direction, up, width, height, angle_radians, aperture, focalLength);
 }
 
 void SceneParser::parseBackground() {
@@ -163,15 +175,25 @@ void SceneParser::parseLights() {
     int count = 0;
     while (num_lights > count) {
         getToken(token);
-        if (strcmp(token, "DirectionalLight") == 0) {
-            lights[count] = parseDirectionalLight();
-        } else if (strcmp(token, "PointLight") == 0) {
-            lights[count] = parsePointLight();
+        if (!strcmp(token, "MaterialIndex")) {
+            // change the current material
+            int index = readInt();
+            assert (index >= 0 && index <= getNumMaterials());
+            current_material = getMaterial(index);
         } else {
-            printf("Unknown token in parseLight: '%s'\n", token);
-            exit(0);
+            if (strcmp(token, "DirectionalLight") == 0) {
+                lights[count] = parseDirectionalLight();
+            } else if (strcmp(token, "PointLight") == 0) {
+                lights[count] = parsePointLight();
+            } else if (strcmp(token, "AreaLight") == 0) {
+                Object3D *object = parseAreaLight();
+                lightGroup->addObject(-1, object);
+            } else {
+                printf("Unknown token in parseLight: '%s'\n", token);
+                exit(0);
+            }
+            count++;
         }
-        count++;
     }
     getToken(token);
     assert (!strcmp(token, "}"));
@@ -206,6 +228,49 @@ Light *SceneParser::parsePointLight() {
     assert (!strcmp(token, "}"));
     return new PointLight(position, color);
 }
+
+Object3D *SceneParser::parseAreaLight() { // ONLY SUPPORT (Transform +) Triangle / TinyObj 
+    char token[MAX_PARSER_TOKEN_LENGTH];
+    getToken(token);
+    assert (!strcmp(token, "{"));
+
+    bool isSingleSided = true;
+    getToken(token);
+    if (!strcmp(token, "DoubleSided")) {
+        isSingleSided = false;
+        getToken(token);
+    }
+
+    assert (!strcmp(token, "emitColor"));
+    Vector3f emitColor = readVector3f();
+
+    MaterialLight *material = new MaterialLight(emitColor);
+    assert (current_material != nullptr);
+    material->setBaseMaterial(current_material);
+    Material *current_material_backup = current_material;
+    current_material = material;
+
+    Object3D *object = nullptr;
+    getToken(token);
+    if (!strcmp(token, "Transform")) {
+        object = parseTransform(true, isSingleSided);
+    } else {
+        if (!strcmp(token, "Triangle")) {
+            object = parseTriangle(Matrix4f::identity());
+        } else if (!strcmp(token, "TinyObj")) {
+            object = parseTinyObj(Matrix4f::identity(), isSingleSided);
+        } else {
+            printf("Arealight can only be Triangle or TinyObj, unknown token in parseAreaLight: '%s'\n", token);
+            exit(0);
+        }
+    }
+    current_material = current_material_backup;
+
+    getToken(token);
+    assert (!strcmp(token, "}"));
+    return object;
+}
+
 // ====================================================================
 // ====================================================================
 
@@ -229,25 +294,8 @@ void SceneParser::parseMaterials() {
     assert (!strcmp(token, "}"));
 }
 
-Sampler *SceneParser::parseMaterialType(const char *typeName, MaterialType &materialType) {
-    if (!strcmp(typeName, "Phong")) {
-        materialType = MaterialType::Phong;
-        return nullptr;
-    } else if (!strcmp(typeName, "Reflective")) {
-        materialType = MaterialType::Reflective;
-        return new SamplerReflective();
-    } else if (!strcmp(typeName, "Refractive")) {
-        materialType = MaterialType::Refractive;
-        return new SamplerRefractive();
-    } else {
-        printf("Unknown material type: '%s'\n", typeName);
-        exit(0);
-    }
-}
 
 Material *SceneParser::parseMaterial(const char *typeName) {
-    MaterialType materialType;
-    Sampler *sampler = parseMaterialType(typeName, materialType);
     char token[MAX_PARSER_TOKEN_LENGTH];
     char filename[MAX_PARSER_TOKEN_LENGTH];
     filename[0] = 0;
@@ -266,16 +314,15 @@ Material *SceneParser::parseMaterial(const char *typeName) {
         } else if (strcmp(token, "refractionIndex") == 0) {
             refractionIndex = readFloat();
         } else if (strcmp(token, "texture") == 0) {
-            // Optional: read in texture and draw it.
             getToken(filename);
         } else {
             assert (!strcmp(token, "}"));
             break;
         }
     }
-    auto *answer = new Material(
-        materialType, sampler, 
-        diffuseColor, specularColor, shininess,
+    auto *answer = createMaterial(typeName, 
+        (std::string) filename,
+        diffuseColor, specularColor, shininess, 
         refractionIndex
     );
     return answer;
@@ -293,11 +340,11 @@ Object3D *SceneParser::parseObject(char token[MAX_PARSER_TOKEN_LENGTH]) {
     } else if (!strcmp(token, "Plane")) {
         answer = (Object3D *) parsePlane();
     } else if (!strcmp(token, "Triangle")) {
-        answer = (Object3D *) parseTriangle();
+        answer = (Object3D *) parseTriangle(Matrix4f::identity());
     } else if (!strcmp(token, "Transform")) {
-        answer = (Object3D *) parseTransform();
+        answer = (Object3D *) parseTransform(false, true);
     } else if (!strcmp(token, "TinyObj")) {
-        answer = (Object3D *) parseTinyObj();
+        answer = (Object3D *) parseTinyObj(Matrix4f::identity(), true);
     } else {
         printf("Unknown token in parseObject: '%s'\n", token);
         exit(0);
@@ -389,7 +436,7 @@ Plane *SceneParser::parsePlane() {
 }
 
 
-Triangle *SceneParser::parseTriangle() {
+Triangle *SceneParser::parseTriangle(const Matrix4f &M=Matrix4f::identity()) {
     char token[MAX_PARSER_TOKEN_LENGTH];
     getToken(token);
     assert (!strcmp(token, "{"));
@@ -405,11 +452,16 @@ Triangle *SceneParser::parseTriangle() {
     getToken(token);
     assert (!strcmp(token, "}"));
     assert (current_material != nullptr);
-    return new Triangle(v0, v1, v2, current_material);
+    if (M == Matrix4f::identity()) { // single triangle sure to be double-sided
+        return new Triangle(v0, v1, v2, current_material, false);
+    } else {                         // single triangle sure to be double-sided
+        Triangle *triangle = new Triangle(v0, v1, v2, current_material, false);
+        return triangle->applyTransform(M);
+    }
 }
 
 
-Transform *SceneParser::parseTransform() {
+Object3D *SceneParser::parseTransform(bool isAreaLight=false, bool isSingleSided=true) {
     char token[MAX_PARSER_TOKEN_LENGTH];
     Matrix4f matrix = Matrix4f::identity();
     Object3D *object = nullptr;
@@ -460,20 +512,36 @@ Transform *SceneParser::parseTransform() {
         } else {
             // otherwise this must be an object,
             // and there are no more transformations
-            object = parseObject(token);
-            break;
+            if (!isAreaLight && !!strcmp(token, "TinyObj")) {
+                object = parseObject(token);
+
+                assert(object != nullptr);
+                getToken(token);
+                assert (!strcmp(token, "}"));
+                return new Transform(matrix, object);
+
+            } else { // AreaLight / TinyObj need to be directly transformed
+                if (!strcmp(token, "Triangle")) {
+                    object = parseTriangle(matrix);
+                } else if (!strcmp(token, "TinyObj")) {
+                    object = parseTinyObj(matrix, isSingleSided);
+                } else {
+                    printf("Arealight can only be Triangle or TinyObj, unknown token in parseTransform: '%s'\n", token);
+                    exit(0);
+                }
+
+                assert(object != nullptr);
+                getToken(token);
+                assert (!strcmp(token, "}"));
+                return object;
+            }
         }
         getToken(token);
     }
-
-    assert(object != nullptr);
-    getToken(token);
-    assert (!strcmp(token, "}"));
-    return new Transform(matrix, object);
 }
 
 
-Group *SceneParser::parseTinyObj() {
+Group *SceneParser::parseTinyObj(const Matrix4f &M=Matrix4f::identity(), bool isSingleSided=true) {
     char token[MAX_PARSER_TOKEN_LENGTH];
     getToken(token);
     assert (!strcmp(token, "{"));
@@ -507,7 +575,7 @@ Group *SceneParser::parseTinyObj() {
     auto& materials = reader.GetMaterials();
 
     assert (current_material != nullptr);
-    Group *answer = new Group(attrib, shapes, materials, current_material, isSmooth);
+    Group *answer = new Group(attrib, shapes, materials, current_material, isSmooth, M, isSingleSided);
 
     getToken(token);
     assert (!strcmp(token, "}"));

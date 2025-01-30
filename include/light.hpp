@@ -3,14 +3,16 @@
 
 #include <Vector3f.h>
 
+// ONLY FOR Whitted-style ray casting
 class Light {
 public:
     Light() = default;
     virtual ~Light() = default;
 
     /// check if the ray from p to the light source is blocked by any object
-    /// @param dist the distance the ray travelled
-    virtual bool isBlocked(const Vector3f &p, float dist) const = 0;
+    /// @param p the origin of the ray
+    /// @param isec the intersection point of the ray
+    virtual bool isBlocked(const Vector3f &p, const Vector3f isec) const = 0;
 
     virtual void getIllumination(const Vector3f &p, Vector3f &dir, Vector3f &col) const = 0;
 };
@@ -27,7 +29,7 @@ public:
 
     ~DirectionalLight() override = default;
 
-    bool isBlocked(const Vector3f &p, float dist) const override {
+    bool isBlocked(const Vector3f &p, const Vector3f isec) const override {
         return true;
     }
 
@@ -58,9 +60,8 @@ public:
 
     ~PointLight() override = default;
 
-    bool isBlocked(const Vector3f &p, float dist) const override {
-        float realDist = (position - p).length();
-        return dist < realDist - 1e-6;
+    bool isBlocked(const Vector3f &p, const Vector3f isec) const override {
+        return Vector3f::dot(isec - position, p - position) > 1e-4f;
     }
 
     void getIllumination(const Vector3f &p, Vector3f &dir, Vector3f &col) const override {

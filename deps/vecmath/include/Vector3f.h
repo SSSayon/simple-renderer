@@ -72,6 +72,8 @@ public:
 	// returns v0 * ( 1 - alpha ) * v1 * alpha
 	static Vector3f lerp( const Vector3f& v0, const Vector3f& v1, float alpha );
 
+	static Vector3f clamp( const Vector3f& v, float low, float high );
+
 	// computes the cubic catmull-rom interpolation between p0, p1, p2, p3
     // by t \in [0,1].  Guarantees that at t = 0, the result is p0 and
     // at p1, the result is p2.

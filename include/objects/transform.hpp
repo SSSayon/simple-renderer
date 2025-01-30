@@ -1,6 +1,8 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
+#include <cstdlib>
+#include <iostream>
 #include <vecmath.h>
 #include "object3d.hpp"
 
@@ -25,7 +27,7 @@ public:
     ~Transform() {
     }
 
-    virtual bool intersect(const Ray &r, Hit &h, float tmin) {
+    bool intersect(const Ray &r, Hit &h, float tmin) override {
         Vector3f trSource = transformPoint(transform, r.getOrigin());
         Vector3f trDirection = transformDirection(transform, r.getDirection());
         Ray tr(trSource, trDirection);
@@ -34,6 +36,15 @@ public:
             h.set(h.getT(), h.getMaterial(), transformDirection(transform.transposed(), h.getNormal()).normalized());
         }
         return inter;
+    }
+    bool intersect(const Ray &r, Hit &h, float tmin, float &pdf) override {
+        std::cerr << "Transform::intersect method (with pdf) should NOT be called!" << std::endl;
+        exit(1);
+    }
+
+    Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
+        std::cerr << "Transform::samplePoint method should NOT be called!" << std::endl;
+        exit(1);
     }
 
 protected:

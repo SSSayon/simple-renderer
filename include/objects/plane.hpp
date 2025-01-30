@@ -31,6 +31,15 @@ public:
         h.set(t, material, (dir_dot_normal > 0) ? -normal : normal);
         return true;
     }
+    bool intersect(const Ray &r, Hit &h, float tmin, float &pdf) override {
+        std::cerr << "Plane::intersect method (with pdf) should NOT be called!" << std::endl;
+        exit(1);
+    }
+
+    Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
+        std::cerr << "Plane::samplePoint method should NOT be called!" << std::endl;
+        exit(1);
+    }
 
 protected:
     Vector3f normal;

@@ -41,7 +41,7 @@ private:
     Vector3f origin;
     Vector3f direction;
 
-    static constexpr float offset = 5e-4f;
+    static constexpr float offset = 6e-4f;
 
 };
 

@@ -1,0 +1,45 @@
+
+PerspectiveCamera {
+    center -0.005 0.995 4.8
+    direction 0 0 -1
+    up 0 1 0
+    angle 29
+    width 768
+    height 768
+    aperture 0.08
+    focalLength 5
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 1
+    Lambert {
+        diffuseColor 1 1 1
+    }
+}
+
+Lights {
+    numLights 1
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 18 13 5
+        TinyObj {
+            ./mesh/cornell_box_light.obj
+        }
+    }
+}
+
+Group {
+    numObjects 1
+
+    MaterialIndex 0
+    TinyObj {
+        ./mesh/cornell_box_no_light.obj
+    }
+
+}

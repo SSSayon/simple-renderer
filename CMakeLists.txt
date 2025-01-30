@@ -9,6 +9,7 @@ ENDIF()
 
 ADD_SUBDIRECTORY(deps/vecmath)
 ADD_SUBDIRECTORY(deps/tinyobjloader)
+ADD_SUBDIRECTORY(deps/stb)
 
 FILE(GLOB SOURCES src/*.cpp)
 FILE(GLOB INCLUDES include/*.hpp)
@@ -16,25 +17,21 @@ FILE(GLOB INCLUDES include/*.hpp)
 SET(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp")
 
-ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${INCLUDES})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} vecmath)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} tinyobjloader)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE include)
+############################################
+############################################
 
-# # Define source files for each executable
-# SET(MAIN_SOURCES ${SOURCES})
-# LIST(REMOVE_ITEM MAIN_SOURCES ${CMAKE_SOURCE_DIR}/src/main_whitted.cpp)
+SET(WHITTED_SOURCES ${SOURCES})
+LIST(REMOVE_ITEM WHITTED_SOURCES ${CMAKE_SOURCE_DIR}/src/main_pathtracing.cpp)
+ADD_EXECUTABLE(whitted ${WHITTED_SOURCES} ${INCLUDES})
+TARGET_LINK_LIBRARIES(whitted vecmath)
+TARGET_LINK_LIBRARIES(whitted tinyobjloader)
+TARGET_LINK_LIBRARIES(whitted stb)
+TARGET_INCLUDE_DIRECTORIES(whitted PRIVATE include)
 
-# SET(MAIN_WHITTED_SOURCES ${SOURCES})
-# LIST(REMOVE_ITEM MAIN_WHITTED_SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp)
-
-# # Add executables
-# ADD_EXECUTABLE(final_main ${MAIN_SOURCES} ${INCLUDES})
-# ADD_EXECUTABLE(final_main_whitted ${MAIN_WHITTED_SOURCES} ${INCLUDES})
-
-# # Link libraries and set include directories for each executable
-# TARGET_LINK_LIBRARIES(final_main vecmath)
-# TARGET_INCLUDE_DIRECTORIES(final_main PRIVATE include)
-
-# TARGET_LINK_LIBRARIES(final_main_whitted vecmath)
-# TARGET_INCLUDE_DIRECTORIES(final_main_whitted PRIVATE include)
+SET(PATHTRACING_SOURCES ${SOURCES})
+LIST(REMOVE_ITEM PATHTRACING_SOURCES ${CMAKE_SOURCE_DIR}/src/main_whitted.cpp)
+ADD_EXECUTABLE(pathtracing ${PATHTRACING_SOURCES} ${INCLUDES})
+TARGET_LINK_LIBRARIES(pathtracing vecmath)
+TARGET_LINK_LIBRARIES(pathtracing tinyobjloader)
+TARGET_LINK_LIBRARIES(pathtracing stb)
+TARGET_INCLUDE_DIRECTORIES(pathtracing PRIVATE include)

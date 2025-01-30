@@ -1,9 +1,12 @@
 #ifndef SCENE_PARSER_H
 #define SCENE_PARSER_H
 
-#include "sampler/sampler.hpp"
 #include <cassert>
-#include <vecmath.h>
+
+#include "Vector3f.h"
+#include "Matrix4f.h"
+
+#include "light.hpp"
 
 class Camera;
 class Light;
@@ -56,6 +59,10 @@ public:
         return group;
     }
 
+    Group *getLightGroup() const {
+        return lightGroup;
+    }
+
 private:
 
     void parseFile();
@@ -64,17 +71,16 @@ private:
     void parseLights();
     Light *parsePointLight();
     Light *parseDirectionalLight();
+    Object3D *parseAreaLight();
     void parseMaterials();
-    Sampler *parseMaterialType(const char *typeName, MaterialType &materialType);
     Material *parseMaterial(const char *typeName);
     Object3D *parseObject(char token[MAX_PARSER_TOKEN_LENGTH]);
     Group *parseGroup();
     Sphere *parseSphere();
     Plane *parsePlane();
-    Triangle *parseTriangle();
-    Mesh *parseTriangleMesh();
-    Transform *parseTransform();
-    Group *parseTinyObj();
+    Triangle *parseTriangle(const Matrix4f &M);
+    Object3D *parseTransform(bool isAreaLight, bool isSingleSided);
+    Group *parseTinyObj(const Matrix4f &M, bool isSingleSided);
 
     int getToken(char token[MAX_PARSER_TOKEN_LENGTH]);
 
@@ -92,6 +98,7 @@ private:
     Material **materials;
     Material *current_material;
     Group *group;
+    Group *lightGroup;
 };
 
 #endif // SCENE_PARSER_H

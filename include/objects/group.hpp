@@ -2,6 +2,7 @@
 #define GROUP_H
 
 #include <cassert>
+#include <random>
 #include <vector>
 
 #include <tiny_obj_loader.h>
@@ -11,6 +12,7 @@
 #include "hit.hpp"
 #include "object3d.hpp"
 #include "objects/mesh.hpp"
+#include "material/material_utils.hpp"
 
 // TODO: Implement Group - add data structure to store a list of Object*
 class Group : public Object3D {
@@ -26,8 +28,8 @@ public:
     Group(const tinyobj::attrib_t &attrib, 
           const std::vector<tinyobj::shape_t> &shapes, 
           const std::vector<tinyobj::material_t> &materials,
-          Material *m, bool isSmooth = false) {
-        
+          Material *m, bool isSmooth=false, const Matrix4f &M=Matrix4f::identity(), bool isSingleSided=true) {
+
         // prepare vertices, vertex normals, and uvs
         std::vector<Vector3f> vertices, vertexNormals;
         std::vector<Vector2f> uvs;
@@ -44,11 +46,11 @@ public:
         for (const auto &shape: shapes) {
             Material *material;
             if (materials.size() == 0) material = m;
-            else material = m->createTinyMaterial(materials[shape.mesh.material_ids[0]]);
+            else material = createTinyMaterial(m->getTypeName(), m->getTextureFilename(), materials[shape.mesh.material_ids[0]]);
                 // actually the 0 above is idx/3 (w.r.t. each triangle)
                 // but it will be space-consuming, and it is often the case that
                 // the whole mesh has the *same* material, which we'll assume here.
-            Mesh *mesh = new Mesh(vertices, vertexNormals, uvs, shape, material, isSmooth);
+            Mesh *mesh = new Mesh(vertices, vertexNormals, uvs, shape, material, isSmooth, M, isSingleSided);
             addObject(-1, mesh);
         }
     }
@@ -57,14 +59,6 @@ public:
         for (Object3D* obj : objects) {
             delete obj;
         }
-    }
-
-    bool intersect(const Ray &r, Hit &h, float tmin) override {
-        bool isHit = false;
-        for(unsigned long i = 0; i < objects.size(); ++i) {
-            isHit |= objects[i]->intersect(r, h, tmin);
-        }
-        return isHit;
     }
 
     void addObject(int index, Object3D *obj) {
@@ -78,6 +72,37 @@ public:
 
     int getGroupSize() {
         return objects.size();
+    }
+
+    bool intersect(const Ray &r, Hit &h, float tmin) override {
+        bool result = false;
+        for(auto obj : objects) {
+            result |= obj->intersect(r, h, tmin);
+        }
+        return result;
+    }
+    bool intersect(const Ray &r, Hit &h, float tmin, float &pdf) override {
+        bool result = false;
+        for(auto obj : objects) {
+            result |= obj->intersect(r, h, tmin, pdf);
+        }
+        if (result) {
+            pdf /= objects.size();
+        }
+        return result;
+    }
+
+    Object3D *sampleObject(std::mt19937 &rng, float &pdf) {
+        pdf = 1.0f / objects.size();
+        std::uniform_int_distribution<int> dist(0, objects.size() - 1);
+        return objects[dist(rng)];
+    }
+
+    Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
+        std::uniform_int_distribution<int> dist(0, objects.size() - 1);
+        Vector3f p = objects[dist(rng)]->samplePoint(rng, pdf);
+        pdf /= objects.size();
+        return p;
     }
 
 private:

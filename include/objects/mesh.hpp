@@ -3,11 +3,13 @@
 
 #include <map>
 #include <vector>
+#include <random>
 
 #include <tiny_obj_loader.h>
 
 #include "Vector2f.h"
 #include "Vector3f.h"
+#include "Matrix4f.h"
 #include "object3d.hpp"
 #include "objects/triangle.hpp"
 
@@ -19,7 +21,8 @@ public:
 
     // assume the mesh is triangulated
     Mesh(const std::vector<Vector3f> &vertices, const std::vector<Vector3f> &vertexNormals, const std::vector<Vector2f> &uvs, 
-         const tinyobj::shape_t &shape, Material *m, bool isSmooth = false) : Object3D(m) {
+         const tinyobj::shape_t &shape, Material *m, bool isSmooth=false, const Matrix4f &M=Matrix4f::identity(), bool isSingleSided=true)
+    : Object3D(m) {
 
         const auto &indices = shape.mesh.indices;
 
@@ -61,11 +64,17 @@ public:
                 }
                 if (hasUVs) {
                     vt[i] = uvs[indices[idx + i].texcoord_index];
+                } else {
+                    vt[i] = Vector2f::ZERO;
                 }
             }
             Triangle *triangle = new Triangle(v[0], v[1], v[2], m,
                                              vn[0], vn[1], vn[2],
-                                             vt[0], vt[1], vt[2]);
+                                             vt[0], vt[1], vt[2],
+                                             isSingleSided);
+            if (M != Matrix4f::identity()) {
+                triangle = triangle->applyTransform(M);
+            }
             triangles.push_back(triangle);
         }
     }
@@ -81,6 +90,23 @@ public:
         }
         return result;
     };
+    bool intersect(const Ray &r, Hit &h, float tmin, float &pdf) override {
+        bool result = false;
+        for (auto triangle: triangles) {
+            result |= triangle->intersect(r, h, tmin, pdf);
+        }
+        if (result) {
+            pdf /= triangles.size();
+        }
+        return result;
+    }
+
+    Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
+        std::uniform_int_distribution<int> dist(0, triangles.size() - 1);
+        Vector3f p = triangles[dist(rng)]->samplePoint(rng, pdf);
+        pdf /= triangles.size();
+        return p;
+    }
 
 private:
     std::vector<Triangle*> triangles;

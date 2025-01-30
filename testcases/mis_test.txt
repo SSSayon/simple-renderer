@@ -1,0 +1,99 @@
+
+PerspectiveCamera {
+    center 9 1 1.2
+    direction -9 -1 -2
+    up 0 1 0
+    angle 30
+    width 768
+    height 768
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 3
+    Lambert {
+        diffuseColor 0 0 0
+    }
+    Lambert {
+        diffuseColor 1 1 1
+    }
+    ModifiedPhong {
+        diffuseColor 1 1 1
+        specularColor 0.5 0.5 0.5 
+        shininess 10
+    }
+}
+
+Lights {
+    numLights 3
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 17 12 4
+        Transform {
+            Translate -4.9 10 -3
+            XRotate -5
+            ZRotate -10
+            Scale 6 1 9
+            TinyObj {
+                ./mesh/square_down.obj
+            }
+        }
+    }
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 20 0 0
+        Transform {
+            Translate 2.5 0.9 -1.2
+            ZRotate 4.5
+            XRotate 10
+            Scale 0.25 1 0.25
+            TinyObj {
+                ./mesh/square_down.obj
+            }
+        }
+    }
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 0 0 100
+        Transform {
+            Translate 5.2 0.67 0.7
+            Scale 0.1 1 0.1
+            TinyObj {
+                ./mesh/square_down.obj
+            }
+        }
+    }
+}
+
+Group {
+    numObjects 2
+
+    MaterialIndex 1
+    Transform {
+        Translate -10 0 0
+        Scale 20 1 10
+        TinyObj {
+            ./mesh/square.obj
+        }
+    }
+
+    MaterialIndex 2
+    Transform {
+        XRotate 20
+        Translate -10 0 -10.4
+        Scale 20 1 10
+        TinyObj {
+            ./mesh/square.obj
+        }
+    }
+
+}
