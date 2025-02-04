@@ -17,7 +17,7 @@ public:
         t = 1e38;
     }
 
-    Hit(float _t, Material *m, const Vector3f &n, const Vector3f &emitN=Vector3f::ZERO, const Vector2f &_uv=Vector2f::ZERO) {
+    Hit(float _t, Material *m, const Vector3f &n, const Vector3f &emitN=Vector3f::ZERO, const Vector2f &_uv=Vector2f::MINUS_ONE) {
         t = _t;
         material = m;
         normal = n;
@@ -56,7 +56,7 @@ public:
         return uv;
     }
 
-    void set(float _t, Material *m, const Vector3f &n, const Vector3f &emitN=Vector3f::ZERO, const Vector2f &_uv=Vector2f::ZERO) {
+    void set(float _t, Material *m, const Vector3f &n, const Vector3f &emitN=Vector3f::ZERO, const Vector2f &_uv=Vector2f::MINUS_ONE) {
         t = _t;
         material = m;
         normal = n;

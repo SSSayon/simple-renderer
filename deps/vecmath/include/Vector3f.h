@@ -11,6 +11,8 @@ public:
 	static const Vector3f UP;
 	static const Vector3f RIGHT;
 	static const Vector3f FORWARD;
+	static const Vector3f INF;
+	static const Vector3f MINUS_INF;
 
     Vector3f( float f = 0.f );
     Vector3f( float x, float y, float z );
@@ -73,6 +75,9 @@ public:
 	static Vector3f lerp( const Vector3f& v0, const Vector3f& v1, float alpha );
 
 	static Vector3f clamp( const Vector3f& v, float low, float high );
+
+	static Vector3f min( const Vector3f& v0, const Vector3f& v1 );
+	static Vector3f max( const Vector3f& v0, const Vector3f& v1 );
 
 	// computes the cubic catmull-rom interpolation between p0, p1, p2, p3
     // by t \in [0,1].  Guarantees that at t = 0, the result is p0 and

@@ -1,0 +1,108 @@
+
+PerspectiveCamera {
+    center -0.005 0.8 4.6
+    direction 0 -0.10 -1
+    up 0 1 0
+    angle 12
+    width 1280
+    height 320
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 6
+    Lambert {
+        diffuseColor 0.725 0.71 0.68
+    }
+    CookTorrance {
+        diffuseColor 0 0 0
+        specularColor 1 1 1 
+        roughness 0.1
+        F0 1.00 0.76 0.25
+    }
+    CookTorrance {
+        diffuseColor 0 0 0
+        specularColor 1 1 1 
+        roughness 0.1
+        F0 0.95 0.93 0.88
+    }
+    CookTorrance {
+        diffuseColor 0 0 0
+        specularColor 1 1 1
+        roughness 0.15
+        F0 0.95 0.64 0.54
+    }
+    CookTorrance {
+        diffuseColor 0 0 0
+        specularColor 1 1 1
+        roughness 0.1
+        F0 0.90 0.90 0.90
+    }
+    CookTorrance {
+        diffuseColor 0 0 0
+        specularColor 1 1 1
+        roughness 0.2
+        F0 0.80 0.80 0.80
+    }
+}
+
+Lights {
+    numLights 1
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 18 13 5
+        Transform {
+            Scale 2 1 1
+            TinyObj {
+                ./mesh/cornell_box_light.obj
+            }
+        }
+    }
+}
+
+Group {
+    numObjects 6
+
+    MaterialIndex 0
+    Transform {
+        Scale 2 1 1
+        TinyObj {
+            ./mesh/cornell_box_only_box_no_mtl.obj
+        }
+    }
+
+    MaterialIndex 1
+    Sphere {
+	    center 1.5 0.3 0
+        radius 0.3
+    }
+
+    MaterialIndex 2
+    Sphere {
+	    center 0.75 0.3 0
+        radius 0.3
+    }
+
+    MaterialIndex 3
+    Sphere {
+	    center 0 0.3 0
+        radius 0.3
+    }
+
+    MaterialIndex 4
+    Sphere {
+	    center -0.75 0.3 0
+        radius 0.3
+    }
+
+    MaterialIndex 5
+    Sphere {
+	    center -1.5 0.3 0
+        radius 0.3
+    }
+}

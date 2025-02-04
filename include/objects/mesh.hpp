@@ -65,7 +65,7 @@ public:
                 if (hasUVs) {
                     vt[i] = uvs[indices[idx + i].texcoord_index];
                 } else {
-                    vt[i] = Vector2f::ZERO;
+                    vt[i] = Vector2f::MINUS_ONE;
                 }
             }
             Triangle *triangle = new Triangle(v[0], v[1], v[2], m,
@@ -83,7 +83,7 @@ public:
         for (auto triangle: triangles) { delete triangle; }
     }
 
-    bool intersect(const Ray &r, Hit &h, float tmin) override {
+    bool intersect(const Ray &r, Hit &h, float tmin) const override {
         bool result = false;
         for (auto triangle: triangles) {
             result |= triangle->intersect(r, h, tmin);
@@ -106,6 +106,19 @@ public:
         Vector3f p = triangles[dist(rng)]->samplePoint(rng, pdf);
         pdf /= triangles.size();
         return p;
+    }
+
+    AABB *getAABB() const override {
+        std::cerr << "Mesh::getAABB method should NOT be called!" << std::endl;
+        exit(1);
+    }
+
+    std::vector<const Object3D*> getObjects() const override {
+        std::vector<const Object3D*> objects;
+        for (const auto triangle: triangles) {
+            objects.push_back(triangle);
+        }
+        return objects;
     }
 
 private:

@@ -15,7 +15,7 @@ public:
     }
 
     Vector3f BRDF(const Vector3f &inDir, const Vector3f &outDir, 
-                  const Vector3f &normal, const Vector2f &uv = Vector2f::ZERO) const override {
+                  const Vector3f &normal, const Vector2f &uv = Vector2f::MINUS_ONE) const override {
         return Vector3f(1.0f);
     }
 

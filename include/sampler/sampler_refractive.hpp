@@ -11,19 +11,19 @@ public:
 
     bool sample(const Material *material, const Vector3f &inDir, const Vector3f &normal,
     /* return values */ Vector3f &outDir) {
-        float cos_i = Vector3f::dot(inDir, normal);
-        float eta_i = 1.0f,  eta_t = material->getRefractionIndex();
+        float cosI = Vector3f::dot(inDir, normal);
+        float etaI = 1.0f,  etaT = material->getRefractionIndex();
         Vector3f n = normal;
 
-        if (cos_i < 0.0f) { cos_i = -cos_i; std::swap(eta_i, eta_t); n = -normal; }
+        if (cosI < 0.0f) { cosI = -cosI; std::swap(etaI, etaT); n = -normal; }
 
-        float eta = eta_i / eta_t;
-        float cos_t_squared = 1.0f - eta * eta * (1.0f - cos_i * cos_i);
+        float eta = etaI / etaT;
+        float cosTSquare = 1.0f - eta * eta * (1.0f - cosI * cosI);
 
-        if (cos_t_squared <= 0.0f) { // total internal reflection
-            outDir = -inDir + 2.0f * cos_i * n;
+        if (cosTSquare <= 0.0f) { // total internal reflection
+            outDir = -inDir + 2.0f * cosI * n;
         } else {                     // refraction
-            outDir = -eta * inDir + (eta * cos_i - sqrtf(cos_t_squared)) * n;
+            outDir = -eta * inDir + (eta * cosI - sqrtf(cosTSquare)) * n;
             outDir.normalize();
         }
         return true;

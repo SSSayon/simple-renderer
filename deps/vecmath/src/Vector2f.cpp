@@ -14,6 +14,9 @@
 const Vector2f Vector2f::ZERO = Vector2f( 0, 0 );
 
 // static
+const Vector2f Vector2f::MINUS_ONE = Vector2f( -1, -1 );
+
+// static
 const Vector2f Vector2f::UP = Vector2f( 0, 1 );
 
 // static

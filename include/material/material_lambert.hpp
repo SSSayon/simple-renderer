@@ -16,8 +16,8 @@ public:
     }
 
     Vector3f BRDF(const Vector3f &inDir, const Vector3f &outDir, 
-                  const Vector3f &normal, const Vector2f &uv = Vector2f::ZERO) const override {
-        if (uv == Vector2f::ZERO) {
+                  const Vector3f &normal, const Vector2f &uv = Vector2f::MINUS_ONE) const override {
+        if (uv == Vector2f::MINUS_ONE) {
             return diffuseColor / M_PI;
         } else {
             return diffuseColor * texture->getColor(uv) / M_PI;

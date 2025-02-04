@@ -16,6 +16,7 @@ FILE(GLOB INCLUDES include/*.hpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -fsanitize=undefined")
 
 ############################################
 ############################################

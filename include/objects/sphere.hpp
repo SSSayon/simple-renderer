@@ -17,7 +17,7 @@ public:
 
     ~Sphere() override = default;
 
-    bool intersect(const Ray &r, Hit &h, float tmin) override {
+    bool intersect(const Ray &r, Hit &h, float tmin) const override {
 
         Vector3f o = r.getOrigin();
         Vector3f d = r.getDirection();
@@ -50,6 +50,20 @@ public:
     Vector3f samplePoint(std::mt19937 &rng, float &pdf) override {
         std::cerr << "Sphere::samplePoint method should NOT be called!" << std::endl;
         exit(1);
+    }
+
+    AABB *getAABB() const override {
+        if (aabb != nullptr) return aabb;
+
+        Vector3f pMin = center - Vector3f(radius, radius, radius);
+        Vector3f pMax = center + Vector3f(radius, radius, radius);
+
+        aabb = new AABB(pMin, pMax);
+        return aabb;
+    }
+
+    std::vector<const Object3D*> getObjects() const override {
+        return {this};
     }
 
 protected:

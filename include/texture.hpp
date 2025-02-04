@@ -14,7 +14,7 @@ public:
     Texture() {
         isDefault = true;
     }
-    Texture(std::string filename) {
+    Texture(std::string filename, bool isLinear = false) {
         data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
         if (data == nullptr) {
             std::cerr << "Failed to load texture: " << filename << std::endl;
@@ -24,7 +24,7 @@ public:
             std::cerr << "Texture: " << filename << " has " << nrChannels << " channels, only 3 or 4 channels are supported." << std::endl;
             exit(1);
         }
-        _sRGBToLinear();
+        if (!isLinear) _sRGBToLinear();
     }
 
     ~Texture() {
@@ -39,6 +39,10 @@ public:
     }
 
 private:
+    bool isDefault = false;
+    unsigned char *data;
+    int width, height, nrChannels;
+
     Vector3f _getColor(int x, int y) const {
         if (isDefault) return Vector3f(1.0f);
 
@@ -93,10 +97,6 @@ private:
     Vector3f _getColorBilinear(const Vector2f &uv) const {
         return _getColorBilinear(uv.x(), uv.y());
     }
-
-    bool isDefault = false;
-    unsigned char *data;
-    int width, height, nrChannels;
 
     void _sRGBToLinear() { // convert back to LinearRGB
         for (int i = 0; i < width * height * nrChannels; i += nrChannels) {

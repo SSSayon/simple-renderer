@@ -13,11 +13,13 @@ public:
     Ray(const Vector3f &orig, const Vector3f &dir) {
         origin = orig;
         direction = dir; // should NOT be normalized, for uses in Transform object
+        invDirection = Vector3f(1.0f / direction.x(), 1.0f / direction.y(), 1.0f / direction.z());
     }
 
     Ray(const Ray &r) {
         origin = r.origin;
         direction = r.direction;
+        invDirection = r.invDirection;
     }
 
     const Vector3f &getOrigin() const {
@@ -26,6 +28,10 @@ public:
 
     const Vector3f &getDirection() const {
         return direction;
+    }
+
+    const Vector3f &getInvDirection() const {
+        return invDirection;
     }
 
     Vector3f pointAtParameter(float t) const {
@@ -39,7 +45,7 @@ public:
 private:
 
     Vector3f origin;
-    Vector3f direction;
+    Vector3f direction, invDirection;
 
     static constexpr float offset = 6e-4f;
 

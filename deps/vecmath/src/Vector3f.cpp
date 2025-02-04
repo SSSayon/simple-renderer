@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
 
 #include "Vector3f.h"
 #include "Vector2f.h"
@@ -21,6 +22,12 @@ const Vector3f Vector3f::RIGHT = Vector3f( 1, 0, 0 );
 
 // static
 const Vector3f Vector3f::FORWARD = Vector3f( 0, 0, -1 );
+
+// static
+const Vector3f Vector3f::INF = Vector3f( std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() );
+
+// static
+const Vector3f Vector3f::MINUS_INF = Vector3f( -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max() );
 
 Vector3f::Vector3f( float f )
 {
@@ -257,6 +264,22 @@ Vector3f Vector3f::clamp( const Vector3f& v, float low, float high )
 	return Vector3f(std::max(low, std::min(high, v.x())),
 					std::max(low, std::min(high, v.y())),
 					std::max(low, std::min(high, v.z())));
+}
+
+// static
+Vector3f Vector3f::min( const Vector3f& v0, const Vector3f& v1 )
+{
+	return Vector3f(std::min(v0.x(), v1.x()),
+					std::min(v0.y(), v1.y()),
+					std::min(v0.z(), v1.z()));
+}
+
+// static
+Vector3f Vector3f::max( const Vector3f& v0, const Vector3f& v1 )
+{
+	return Vector3f(std::max(v0.x(), v1.x()),
+					std::max(v0.y(), v1.y()),
+					std::max(v0.z(), v1.z()));
 }
 
 // static

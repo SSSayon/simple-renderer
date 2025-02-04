@@ -19,7 +19,8 @@ Materials {
     }
     Lambert {
         diffuseColor 1 1 1
-        texture ./textures/cat.jpg
+        texture ./textures/stone.png
+        normalTexture ./textures/stone_normal.png
     }
 }
 
@@ -29,7 +30,7 @@ Lights {
     MaterialIndex 0
     AreaLight {
         DoubleSided
-        emitColor 18 13 5
+        emitColor 40 40 40
         TinyObj {
             ./mesh/cornell_box_light.obj
         }

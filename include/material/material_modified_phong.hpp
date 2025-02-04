@@ -17,10 +17,10 @@ public:
     }
 
     Vector3f BRDF(const Vector3f &inDir, const Vector3f &outDir, 
-                  const Vector3f &normal, const Vector2f &uv = Vector2f::ZERO) const override {
+                  const Vector3f &normal, const Vector2f &uv = Vector2f::MINUS_ONE) const override {
         Vector3f reflectDir = -inDir + 2.0f * Vector3f::dot(normal, inDir) * normal;
 
-        if (uv == Vector2f::ZERO) {
+        if (uv == Vector2f::MINUS_ONE) {
             return diffuseColor / M_PI 
                  + specularColor * std::pow(std::max(0.0f, Vector3f::dot(outDir, reflectDir)), 
                                             shininess) 

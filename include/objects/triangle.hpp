@@ -1,10 +1,12 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include "Matrix3f.h"
 #include "Matrix4f.h"
 #include "Vector2f.h"
 #include "Vector3f.h"
 #include "object3d.hpp"
+#include <cassert>
 #include <vecmath.h>
 #include <cmath>
 
@@ -28,7 +30,7 @@ public:
 
         v1 = a; v2 = b; v3 = c;
         vn1 = Vector3f::ZERO; vn2 = Vector3f::ZERO; vn3 = Vector3f::ZERO;
-        uv1 = Vector2f::ZERO; uv2 = Vector2f::ZERO; uv3 = Vector2f::ZERO;
+        uv1 = Vector2f::MINUS_ONE; uv2 = Vector2f::MINUS_ONE; uv3 = Vector2f::MINUS_ONE;
 
         normal = Vector3f::cross(v2 - v1, v3 - v1);
         area = 0.5f * normal.length();
@@ -44,6 +46,38 @@ public:
     : Triangle(a, b, c, m, isSingleSided) {
         vn1 = na; vn2 = nb; vn3 = nc;
         uv1 = ta; uv2 = tb; uv3 = tc;
+
+        // normal mapping, precompute TBN matrix
+        // reference: https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+        if (!m->getNormalTextureFilename().empty()) {
+            assert(uv1 != Vector2f::MINUS_ONE);
+            Vector3f e1 = v2 - v1;
+            Vector3f e2 = v3 - v1;
+            Vector2f deltaUV1 = uv2 - uv1;
+            Vector2f deltaUV2 = uv3 - uv1;
+
+            Vector3f tangent, bitangent;
+            float det = deltaUV1.x() * deltaUV2.y() - deltaUV1.y() * deltaUV2.x();
+            if (fabs(det) < EPStriangle) { // degenerate triangle
+                tangent = Vector3f(1.0f, 0.0f, 0.0f);
+                bitangent = Vector3f(0.0f, 1.0f, 0.0f);
+            } else {
+                float invDet = 1.0f / det;
+                /*
+                    e1 = deltaUV1.x() * tangent + deltaUV1.y() * bitangent
+                    e2 = deltaUV2.x() * tangent + deltaUV2.y() * bitangent
+
+                    solve the above equations to get tangent and bitangent
+                */
+                tangent = (deltaUV2.y() * e1 - deltaUV1.y() * e2) * invDet;
+                // bitangent = (deltaUV1.x() * e2 - deltaUV2.x() * e1) * invDet;
+
+                // Gram-Schmidt orthogonalize
+                tangent = (tangent - Vector3f::dot(tangent, normal) * normal).normalized();
+                bitangent = Vector3f::cross(normal, tangent);
+            }
+            TBN = Matrix3f(tangent, bitangent, normal);
+        }
     }
 
     Triangle *applyTransform(const Matrix4f &M) {
@@ -64,7 +98,7 @@ public:
     }
 
     // Moller–Trumbore intersection algorithm, see https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-    bool intersect(const Ray& r,  Hit& h , float tmin) override {
+    bool intersect(const Ray& r,  Hit& h , float tmin) const override {
         Vector3f o = r.getOrigin();
         Vector3f d = r.getDirection();
 
@@ -89,13 +123,22 @@ public:
         float t = inv_det * Vector3f::dot(e2, o_minus_v1_cross_e1);
         if (t > h.getT() || t < tmin) return false;
 
+        Vector2f uv = Vector2f::MINUS_ONE;
+        if (uv1 != Vector2f::MINUS_ONE) {
+            uv = (1 - u - v) * uv1 + u * uv2 + v * uv3;
+        }
+
         Vector3f n = normal;
-        if (vn1 != Vector3f::ZERO || vn2 != Vector3f::ZERO || vn3 != Vector3f::ZERO) {
+        if (!material->getNormalTextureFilename().empty()) {                                // normal mapping
+            Vector3f tangentNormal = material->getNormalTexture()->getColor(uv);
+            tangentNormal = 2.0f * tangentNormal - Vector3f(1.0f);
+            n = TBN * tangentNormal;
+            n.normalize();
+        }
+        else if (vn1 != Vector3f::ZERO || vn2 != Vector3f::ZERO || vn3 != Vector3f::ZERO) { // normal interpolation
             n = (1 - u - v) * vn1 + u * vn2 + v * vn3;
             n.normalize();
         }
-
-        Vector2f uv = (1 - u - v) * uv1 + u * uv2 + v * uv3;
 
         if(isSingleSided) {
             h.set(t, material, n, n, uv);
@@ -128,6 +171,19 @@ public:
         return (1.0f - u - v) * v1 + u * v2 + v * v3;
     }
 
+    AABB *getAABB() const override {
+        if (aabb != nullptr) return aabb;
+
+        Vector3f pMin = Vector3f::min(v1, Vector3f::min(v2, v3));
+        Vector3f pMax = Vector3f::max(v1, Vector3f::max(v2, v3));
+        aabb = new AABB(pMin - Vector3f(AABB::EPSaabb), pMax + Vector3f(AABB::EPSaabb));
+        return aabb;
+    }
+
+    std::vector<const Object3D*> getObjects() const override {
+        return {this};
+    }
+
 protected:
     
     Vector3f v1, v2, v3;       // vertex
@@ -135,6 +191,8 @@ protected:
     Vector2f uv1, uv2, uv3;    // vertex texture coordinate
 
     Vector3f normal;           // face normal
+    Matrix3f TBN;              // TBN matrix
+
     bool isSingleSided = true; // single-sided or double-sided
                                // you can image a double-sided triangle has very, very thin thickness
     float area;

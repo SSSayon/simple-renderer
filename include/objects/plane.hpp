@@ -1,6 +1,7 @@
 #ifndef PLANE_H
 #define PLANE_H
 
+#include "accel/aabb.hpp"
 #include "object3d.hpp"
 #include <vecmath.h>
 #include <cmath>
@@ -17,7 +18,7 @@ public:
 
     ~Plane() override = default;
 
-    bool intersect(const Ray &r, Hit &h, float tmin) override {
+    bool intersect(const Ray &r, Hit &h, float tmin) const override {
 
         Vector3f ori = r.getOrigin();
         Vector3f dir = r.getDirection();
@@ -40,6 +41,18 @@ public:
         std::cerr << "Plane::samplePoint method should NOT be called!" << std::endl;
         exit(1);
     }
+
+    AABB *getAABB() const override {
+        if (aabb != nullptr) return aabb;
+        aabb = new AABB(Vector3f::MINUS_INF, Vector3f::INF);
+        return aabb;
+    }
+
+    std::vector<const Object3D*> getObjects() const override {
+        return {this};
+    }
+
+    bool isPlane() const override { return true; }
 
 protected:
     Vector3f normal;

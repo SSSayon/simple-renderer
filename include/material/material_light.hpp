@@ -17,14 +17,19 @@ public:
         sampler = material->getSampler();
         textureFilename = material->getTextureFilename();
         texture = material->getTexture();
+        normalTextureFilename = material->getNormalTextureFilename();
+        normalTexture = material->getNormalTexture();
         diffuseColor = material->getDiffuseColor();
         specularColor = material->getSpecularColor();
         shininess = material->getShininess();
+        transmissiveColor = material->getTransmissiveColor();
         refractionIndex = material->getRefractionIndex();
+        roughness = material->getRoughness();
+        F0 = material->getF0();
     }
 
     Vector3f BRDF(const Vector3f &inDir, const Vector3f &outDir, 
-                  const Vector3f &normal, const Vector2f &uv = Vector2f::ZERO) const override {
+                  const Vector3f &normal, const Vector2f &uv = Vector2f::MINUS_ONE) const override {
         if (baseMaterial) return baseMaterial->BRDF(inDir, outDir, normal, uv);
         std::cerr << "MaterialLight has not been assigned a baseMaterial!" << std::endl;
         exit(1);

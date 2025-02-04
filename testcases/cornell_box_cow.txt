@@ -1,0 +1,58 @@
+
+PerspectiveCamera {
+    center -0.005 0.995 4.8
+    direction 0 0 -1
+    up 0 1 0
+    angle 29
+    width 768
+    height 768
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 2
+    Lambert {
+        diffuseColor 1 1 1
+    }
+    ModifiedPhong {
+        diffuseColor 0.8 0.8 0.8
+        specularColor 0.2 0.2 0.2
+        shininess 5
+        texture ./textures/cow.png
+    }
+}
+
+Lights {
+    numLights 1
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 16 16 16
+        TinyObj {
+            ./mesh/cornell_box_light.obj
+        }
+    }
+}
+
+Group {
+    numObjects 2
+
+    MaterialIndex 0
+    TinyObj {
+        ./mesh/cornell_box_only_box.obj
+    }
+
+    MaterialIndex 1
+    Transform {
+        Translate 0 1 0
+        YRotate 140
+        UniformScale 0.3
+        TinyObj {
+            ./mesh/cow.obj
+        }
+    }
+}

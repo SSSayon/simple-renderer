@@ -13,6 +13,7 @@
 #include "object3d.hpp"
 #include "objects/mesh.hpp"
 #include "material/material_utils.hpp"
+#include "accel/bvh.hpp"
 
 // TODO: Implement Group - add data structure to store a list of Object*
 class Group : public Object3D {
@@ -46,7 +47,10 @@ public:
         for (const auto &shape: shapes) {
             Material *material;
             if (materials.size() == 0) material = m;
-            else material = createTinyMaterial(m->getTypeName(), m->getTextureFilename(), materials[shape.mesh.material_ids[0]]);
+            else material = createTinyMaterial(m->getTypeName(), 
+                                               m->getTextureFilename(), 
+                                               m->getNormalTextureFilename(), 
+                                               materials[shape.mesh.material_ids[0]]);
                 // actually the 0 above is idx/3 (w.r.t. each triangle)
                 // but it will be space-consuming, and it is often the case that
                 // the whole mesh has the *same* material, which we'll assume here.
@@ -74,7 +78,10 @@ public:
         return objects.size();
     }
 
-    bool intersect(const Ray &r, Hit &h, float tmin) override {
+    bool intersect(const Ray &r, Hit &h, float tmin) const override {
+        if (bvh) {
+            return bvh->intersect(r, h, tmin);
+        }
         bool result = false;
         for(auto obj : objects) {
             result |= obj->intersect(r, h, tmin);
@@ -92,6 +99,21 @@ public:
         return result;
     }
 
+    AABB *getAABB() const override {
+        std::cerr << "Group::getAABB method should NOT be called!" << std::endl;
+        exit(1);
+    }
+
+    std::vector<const Object3D*> getObjects() const override {
+        std::vector<const Object3D*> constObjects;
+        for (const auto obj : objects) {
+            for (auto o : obj->getObjects()) {
+                constObjects.push_back(o);
+            }
+        }
+        return constObjects;
+    }
+
     Object3D *sampleObject(std::mt19937 &rng, float &pdf) {
         pdf = 1.0f / objects.size();
         std::uniform_int_distribution<int> dist(0, objects.size() - 1);
@@ -105,8 +127,14 @@ public:
         return p;
     }
 
+    void buildBVH() {
+        std::vector<BVHNode*> nodes;
+        bvh = new BVH(getObjects());
+    }
+
 private:
     std::vector<Object3D*> objects;
+    BVH *bvh = nullptr;
 };
 
 #endif // GROUP_H

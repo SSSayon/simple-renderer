@@ -297,10 +297,10 @@ void SceneParser::parseMaterials() {
 
 Material *SceneParser::parseMaterial(const char *typeName) {
     char token[MAX_PARSER_TOKEN_LENGTH];
-    char filename[MAX_PARSER_TOKEN_LENGTH];
-    filename[0] = 0;
-    Vector3f diffuseColor(1, 1, 1), specularColor(0, 0, 0);
-    float shininess = 0, refractionIndex = 1;
+    char textureFilename[MAX_PARSER_TOKEN_LENGTH], normalTextureFilename[MAX_PARSER_TOKEN_LENGTH];
+    textureFilename[0] = 0, normalTextureFilename[0] = 0;
+    Vector3f diffuseColor(1.0f), specularColor(0.0f), transmissiveColor(1.0f), F0(0.0f);;
+    float shininess = 0.0f, refractionIndex = 1.0f, roughness = 0.0f;
     getToken(token);
     assert (!strcmp(token, "{"));
     while (true) {
@@ -311,19 +311,28 @@ Material *SceneParser::parseMaterial(const char *typeName) {
             specularColor = readVector3f();
         } else if (strcmp(token, "shininess") == 0) {
             shininess = readFloat();
+        } else if (strcmp(token, "transmissiveColor") == 0) {
+            transmissiveColor = readVector3f();
         } else if (strcmp(token, "refractionIndex") == 0) {
             refractionIndex = readFloat();
+        } else if (strcmp(token, "roughness") == 0) {
+            roughness = readFloat();
+        } else if (strcmp(token, "F0") == 0) {
+            F0 = readVector3f();
         } else if (strcmp(token, "texture") == 0) {
-            getToken(filename);
+            getToken(textureFilename);
+        } else if (strcmp(token, "normalTexture") == 0) {
+            getToken(normalTextureFilename);
         } else {
             assert (!strcmp(token, "}"));
             break;
         }
     }
     auto *answer = createMaterial(typeName, 
-        (std::string) filename,
+        (std::string) textureFilename, (std::string) normalTextureFilename,
         diffuseColor, specularColor, shininess, 
-        refractionIndex
+        transmissiveColor, refractionIndex, 
+        roughness, F0
     );
     return answer;
 }

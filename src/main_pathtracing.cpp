@@ -30,21 +30,21 @@ ShaderFunc selectShader(const std::string &description) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 3 || argc > 5) {
-        std::cout << "Usage: ./build/pathtracing <input scene file> <output bmp file> <description> <SPP>(optional)" << std::endl;
+    if (argc != 6) {
+        std::cout << "Usage: ./build/pathtracing <input scene file> <output bmp file> <description> <SPP> <BVH>" << std::endl;
         return 1;
     }
     std::string inputFile = argv[1];
     std::string outputFile = argv[2];  // only bmp is allowed.
     std::string description = argv[3];
-    int SPP = 16;
-    if (argc == 5) SPP = std::stoi(argv[4]);
+    int SPP = std::stoi(argv[4]);
 
     SceneParser parser(inputFile.c_str());
     std::cout << "Built scene from " << inputFile << std::endl;
 
     Camera *camera = parser.getCamera();
     Group *baseGroup = parser.getGroup();
+    if (std::string(argv[5]) == "true") baseGroup->buildBVH();
     Group *lightGroup = parser.getLightGroup();
     Vector3f backgroundColor = parser.getBackgroundColor();
     int width = camera->getWidth();

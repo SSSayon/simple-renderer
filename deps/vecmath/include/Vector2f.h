@@ -10,6 +10,7 @@ class Vector2f
 public:
     
     static const Vector2f ZERO;
+	static const Vector2f MINUS_ONE;
 	static const Vector2f UP;
 	static const Vector2f RIGHT;
 

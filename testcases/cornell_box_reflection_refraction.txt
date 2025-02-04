@@ -9,27 +9,18 @@ PerspectiveCamera {
 }
 
 Background {
-    color 0.12 0.087 0.031
+    color 0 0 0
 }
 
 Materials {
-    numMaterials 5
+    numMaterials 3
     Lambert {
         diffuseColor 1 1 1
     }
-    ModifiedPhong {
-        diffuseColor 0 0 1
-        specularColor 0.95 0.95 0.95
-        shininess 10
-    }
-    ModifiedPhong {
-        diffuseColor 0 0.85 0
-        specularColor 0.05 0.05 0.05
-        shininess 1
-    }
     Reflective {
     }
-    Refractive {
+    Glass {
+        transmissiveColor 0.9 0.9 0.9
         refractionIndex 1.5
     }
 }
@@ -48,7 +39,7 @@ Lights {
 }
 
 Group {
-    numObjects 5
+    numObjects 3
 
     MaterialIndex 0
     TinyObj {
@@ -57,28 +48,13 @@ Group {
 
     MaterialIndex 1
     Sphere {
-        center 0.2 0.7 0.5
-        radius 0.35
+        center -0.4 0.35 -0.4
+        radius 0.35 
     }
 
     MaterialIndex 2
     Sphere {
-	    center -0.5 0.7 -0.6 
-        radius 0.35
-    }
-
-    MaterialIndex 3
-    Sphere {
-	    center 0.5 1.5 -0.5 
+        center 0.4 0.35 0.4
         radius 0.35 
-    }
-
-    MaterialIndex 4
-    Transform {
-        Translate 0 0.3 -0.15
-        Scale 0.96 0.3 0.1
-        TinyObj {
-            ./mesh/cube.obj
-        }
     }
 }
