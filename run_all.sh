@@ -60,3 +60,6 @@ mkdir -p output
 # cook-torrance
 # build/pathtracing testcases/cornell_box_balls.txt cornell_box_balls uniform_mis $SPP $BVH
 # build/pathtracing testcases/cornell_box_balls.txt cornell_box_balls cook_mis $SPP $BVH
+
+# go
+build/pathtracing testcases/go.txt go/go mis $SPP $BVH

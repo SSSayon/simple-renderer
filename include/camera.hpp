@@ -58,8 +58,8 @@ public:
 
         // anti-aliasing
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-        // float dx = dist(rng), dy = dist(rng);
-        float dx = 0.5f, dy = 0.5f;
+        float dx = dist(rng), dy = dist(rng);
+        // float dx = 0.5f, dy = 0.5f;
 
         Vector3f cameraDir = Vector3f((x + dx - cx) / fx, (cy - y - dy) / fy, 1).normalized();
         Vector3f rayDir = cameraToWorld * cameraDir;

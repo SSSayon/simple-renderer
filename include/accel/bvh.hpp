@@ -58,7 +58,7 @@ public:
 
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        std::cout << "Built BVH in " << duration << "ms" << std::endl;
+        std::cout << "BVH built in " << duration << "ms" << std::endl;
     }
 
     ~BVH() { delete root; }

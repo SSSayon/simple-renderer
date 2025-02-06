@@ -1,0 +1,161 @@
+
+PerspectiveCamera {
+    center 9 4.9 5.5
+    direction -9 -5 -5
+    up 0 1 0
+    angle 20
+    width 1664
+    height 1024
+    aperture 0.1
+    focalLength 10.75
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 7
+    Lambert {
+        diffuseColor 0 0 0
+    }
+    Lambert {
+        diffuseColor 1 1 1
+    }
+
+    CookTorrance {
+        diffuseColor 1 1 1
+        specularColor 0.2 0.2 0.2
+        roughness 0.2
+        F0 0.04 0.04 0.04
+        texture ./textures/go.png
+        normalTexture ./textures/go_normal.png
+    }
+
+    CookTorrance {
+        diffuseColor 0.9 0.9 0.9
+        specularColor 1 1 1
+        roughness 0.1
+        F0 0.04 0.04 0.04
+    }
+    CookTorrance {
+        diffuseColor 0.02 0.02 0.02
+        specularColor 1 1 1
+        roughness 0.1
+        F0 0.04 0.04 0.04
+    }
+
+    CookTorrance {
+        diffuseColor 1 1 1
+        specularColor 0.1 0.1 0.1
+        roughness 0.3
+        F0 0.04 0.04 0.04
+        texture ./textures/wood.png
+        normalTexture ./textures/wood_normal.png
+    }
+    Glass {
+        specularColor 0.9 0.9 0.9
+        transmissiveColor 0.9 0.9 0.9
+        refractionIndex 1.5
+    }
+}
+
+Lights {
+    numLights 2
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 35 35 35
+        Transform {
+            Translate -12 5 -5
+            ZRotate 50 
+            Scale 2.5 1 2.5
+            TinyObj {
+                ./mesh/square_down.obj
+            }
+        }
+    }
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 4 4 4
+        Transform {
+            Translate -4 5 10
+            XRotate 30 
+            Scale 8 1 8
+            TinyObj {
+                ./mesh/square_down.obj
+            }
+        }
+    }
+}
+
+Group {
+    numObjects 8
+
+    MaterialIndex 1
+    Plane {
+        normal 0 1 0
+        offset 0
+    }
+
+    MaterialIndex 2
+    Transform {
+        Translate 0 -0.04 0
+        UniformScale 1000
+        TinyObj {
+            ./mesh/go/board.obj
+        }
+    }
+
+    MaterialIndex 3
+    Transform {
+        Translate 0 0.5214 0
+        TinyObj {
+            Smooth
+            ./mesh/go/white_pieces.obj
+        }
+    }
+    MaterialIndex 4
+    Transform {
+        Translate 0 0.5214 0
+        TinyObj {
+            Smooth
+            ./mesh/go/black_pieces.obj
+        }
+    }
+
+    MaterialIndex 5
+    Transform {
+        Translate 1.1 0.0716 3.1
+        TinyObj {
+            ./mesh/go/cover.obj
+        }
+    }
+    MaterialIndex 4
+    Transform {
+        Translate 1.1 0.0716 3.1
+        TinyObj {
+            Smooth
+            ./mesh/go/captured.obj
+        }
+    }
+
+    MaterialIndex 6
+    Transform {
+        Translate -0.9 0 3.1
+        TinyObj {
+            ./mesh/go/bowl.obj
+        }
+    }
+    MaterialIndex 4
+    Transform {
+        Translate -0.9 0 3.1
+        TinyObj {
+            Smooth
+            ./mesh/go/remained.obj
+        }
+    }
+}

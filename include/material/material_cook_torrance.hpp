@@ -41,7 +41,7 @@ public:
 
         // Normal distribution term
         float denom = cosThetaH * cosThetaH * (alphaSquare - 1) + 1;
-        float D = alphaSquare / (M_PI * denom * denom);
+        float D = alphaSquare / (M_PI * denom * denom + 1e-8f);
 
         // BRDF
         if (uv == Vector2f::MINUS_ONE) {

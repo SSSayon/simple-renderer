@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
+#include <chrono>
 
 #include <tiny_obj_loader.h>
 
@@ -23,6 +24,9 @@
 #define DegreesToRadians(x) ((M_PI * x) / 180.0f)
 
 SceneParser::SceneParser(const char *filename) {
+
+    std::cout << "Parsing scene..." << std::endl;
+    auto begin = std::chrono::high_resolution_clock::now();
 
     // initialize some reasonable default values
     group = nullptr;
@@ -55,6 +59,14 @@ SceneParser::SceneParser(const char *filename) {
 
     if (num_lights == 0) {
         printf("WARNING:    No lights specified\n");
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+    if (duration > 1000) {
+        std::cout << "Scene parsed in " << duration / 1000.0 << "s" << std::endl;
+    } else {
+        std::cout << "Scene parsed in " << duration << "ms" << std::endl;
     }
 }
 

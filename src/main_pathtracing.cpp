@@ -20,12 +20,12 @@
 using ShaderFunc = std::function<Vector3f(Ray, Group*, Group*, const Vector3f&, std::mt19937&)>;
 
 ShaderFunc selectShader(const std::string &description) {
-    if (description.find("mis") != std::string::npos) {
-        return ShaderMIS;
+    if (description.find("naive") != std::string::npos) {
+        return ShaderNaive;
     } else if (description.find("nee") != std::string::npos) {
         return ShaderNEE;
     } else {
-        return ShaderNaive;
+        return ShaderMIS;
     }
 }
 
@@ -38,10 +38,9 @@ int main(int argc, char *argv[]) {
     std::string outputFile = argv[2];  // only bmp is allowed.
     std::string description = argv[3];
     int SPP = std::stoi(argv[4]);
+    std::cout << "Scene file: " << inputFile << ", output to " << outputFile << ".bmp, SPP: " << SPP << std::endl;
 
     SceneParser parser(inputFile.c_str());
-    std::cout << "Built scene from " << inputFile << std::endl;
-
     Camera *camera = parser.getCamera();
     Group *baseGroup = parser.getGroup();
     if (std::string(argv[5]) == "true") baseGroup->buildBVH();
@@ -77,7 +76,7 @@ int main(int argc, char *argv[]) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     showProgress(1.0f);
-    std::cout << std::endl << "Rendering time: " << duration / 1000.0 << "s" << std::endl;
+    std::cout << std::endl << "Scene rendered in " << duration / 1000.0 << "s" << std::endl;
 
     image.divideAllPixels(SPP);
     image.LinearToSRGB();

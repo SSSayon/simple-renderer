@@ -21,6 +21,7 @@ public:
 
         auto f = [](const Vector3f &v) { return v.x() + v.y() + v.z(); };
         float P = f(specularColor) / (f(specularColor) + f(diffuseColor));
+        P = std::max(0.1f, std::min(0.9f, P));
         std::uniform_real_distribution<float> dist(0, 1);
 
         if (dist(rng) < P) {            // sample specular
@@ -57,6 +58,7 @@ public:
 
         auto f = [](const Vector3f &v) { return v.x() + v.y() + v.z(); };
         float P = f(specularColor) / (f(specularColor) + f(diffuseColor));
+        P = std::max(0.1f, std::min(0.9f, P));
 
         Vector3f reflectDir = -inDir + 2.0f * Vector3f::dot(inDir, normal) * normal;
         float specularPdf = powf(std::max(0.0f, Vector3f::dot(outDir, reflectDir)), shininess) * (shininess + 1) / (2 * M_PI);

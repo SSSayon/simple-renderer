@@ -128,6 +128,6 @@ Vector3f ShaderMIS(Ray ray, Group *baseGroup, Group *lightGroup, const Vector3f 
         weight = weight / RR;
     }
 
-    return finalColor;
-    // return Vector3f::clamp(replaceBad(finalColor), 0.0f, 20.0f);
+    // return finalColor;
+    return Vector3f::clamp(replaceBad(finalColor), 0.0f, 20.0f);
 }

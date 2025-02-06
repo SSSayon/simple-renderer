@@ -22,6 +22,7 @@ public:
 
         auto f = [](const Vector3f &v) { return v.x() + v.y() + v.z(); };
         float P = f(specularColor) / (f(specularColor) + f(diffuseColor));
+        P = std::max(0.1f, std::min(0.9f, P));
         std::uniform_real_distribution<float> dist(0, 1);
 
         Vector3f halfDir;
@@ -39,6 +40,7 @@ public:
         } else {                        // sample diffuse
             SamplerCosineWeighted sampler;
             sampler.sample(material, inDir, normal, rng, outDir, pdf);
+            halfDir = (inDir + outDir).normalized(); // DO NOT FORGET THIS!
         }
 
         float cosThetaO = Vector3f::dot(outDir, normal);
@@ -50,11 +52,10 @@ public:
         
         float cosThetaH = Vector3f::dot(halfDir, normal);
         float denom = cosThetaH * cosThetaH * (alphaSquare - 1) + 1;
-        float halfDirPdf = alphaSquare * cosThetaH / (M_PI * denom * denom);
-        float specularPdf = halfDirPdf / (4 * Vector3f::dot(inDir, halfDir)); // Jacobian
+        float halfDirPdf = alphaSquare * cosThetaH / (M_PI * denom * denom + 1e-8f);
+        float specularPdf = halfDirPdf / (4 * Vector3f::dot(inDir, halfDir) + 1e-8f); // Jacobian
 
         pdf = P * specularPdf + (1 - P) * diffusePdf;
-
         return true;
     }
 
@@ -66,14 +67,15 @@ public:
 
         auto f = [](const Vector3f &v) { return v.x() + v.y() + v.z(); };
         float P = f(specularColor) / (f(specularColor) + f(diffuseColor));
+        P = std::max(0.1f, std::min(0.9f, P));
 
         Vector3f halfDir = (inDir + outDir).normalized();
         float cosThetaH = Vector3f::dot(halfDir, normal);
         float cosThetaO = Vector3f::dot(outDir, normal);
 
         float denom = cosThetaH * cosThetaH * (alphaSquare - 1) + 1;
-        float halfDirPdf = alphaSquare * cosThetaH / (M_PI * denom * denom);
-        float specularPdf = halfDirPdf / (4 * Vector3f::dot(inDir, halfDir));
+        float halfDirPdf = alphaSquare * cosThetaH / (M_PI * denom * denom + 1e-8f);
+        float specularPdf = halfDirPdf / (4 * Vector3f::dot(inDir, halfDir) + 1e-8f); // Jacobian
 
         float diffusePdf = cosThetaO / M_PI;
 
