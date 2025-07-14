@@ -15,7 +15,6 @@
 #include "material/material_utils.hpp"
 #include "accel/bvh.hpp"
 
-// TODO: Implement Group - add data structure to store a list of Object*
 class Group : public Object3D {
 
 public:
@@ -128,7 +127,6 @@ public:
     }
 
     void buildBVH() {
-        std::vector<BVHNode*> nodes;
         bvh = new BVH(getObjects());
     }
 

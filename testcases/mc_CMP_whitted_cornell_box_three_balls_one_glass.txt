@@ -1,0 +1,86 @@
+
+PerspectiveCamera {
+    center -0.005 0.995 4.8
+    direction 0 0 -1
+    up 0 1 0
+    angle 29
+    width 2048
+    height 2048
+}
+
+Background {
+    color 0 0 0
+}
+
+Materials {
+    numMaterials 5
+    Lambert {
+        diffuseColor 1 1 1
+    }
+    ModifiedPhong {
+        diffuseColor 0 0 1
+        specularColor 0.95 0.95 0.95
+        shininess 10
+    }
+    ModifiedPhong {
+        diffuseColor 0 0.85 0
+        specularColor 0.05 0.05 0.05
+        shininess 1
+    }
+    Reflective {
+    }
+    Glass {
+        specularColor 0.9 0.9 0.9
+        transmissiveColor 0.9 0.9 0.9
+        refractionIndex 1.5
+    }
+}
+
+Lights {
+    numLights 1
+
+    MaterialIndex 0
+    AreaLight {
+        DoubleSided
+        emitColor 20 15 6
+        TinyObj {
+            ./mesh/cornell_box_light.obj
+        }
+    }
+}
+
+Group {
+    numObjects 5
+
+    MaterialIndex 1
+    TinyObj {
+        ./mesh/cornell_box_only_box.obj
+    }
+
+    MaterialIndex 1
+    Sphere {
+        center 0.2 0.7 0.5
+        radius 0.35
+    }
+
+    MaterialIndex 2
+    Sphere {
+	    center -0.5 0.7 -0.6 
+        radius 0.35
+    }
+
+    MaterialIndex 3
+    Sphere {
+	    center 0.5 1.5 -0.5 
+        radius 0.35 
+    }
+
+    MaterialIndex 4
+    Transform {
+        Translate 0 0.301 -0.15
+        Scale 0.96 0.3 0.1
+        TinyObj {
+            ./mesh/cube.obj
+        }
+    }
+}

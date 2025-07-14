@@ -24,8 +24,9 @@ cmake --build build
 mkdir -p output
 
 # whitted
-# build/whitted testcases/whitted_cornell_box_five_balls.txt whitted_five_balls
-# build/whitted testcases/whitted_cornell_box_three_balls_one_glass.txt whitted_three_balls_one_glass
+# build/whitted testcases/whitted_cornell_box_five_balls.txt whitted/whitted_five_balls
+# build/whitted testcases/whitted_cornell_box_three_balls_one_glass.txt whitted/whitted_three_balls_one_glass
+# build/pathtracing testcases/mc_CMP_whitted_cornell_box_three_balls_one_glass.txt whitted/mc_CMP_whitted_three_balls_one_glass nee $SPP $BVH
 
 # lambert
 # build/pathtracing testcases/cornell_box.txt cornell_box/cornell_box uniform_naive $SPP $BVH
@@ -60,6 +61,10 @@ mkdir -p output
 # cook-torrance
 # build/pathtracing testcases/cornell_box_balls.txt cornell_box_balls uniform_mis $SPP $BVH
 # build/pathtracing testcases/cornell_box_balls.txt cornell_box_balls cook_mis $SPP $BVH
+
+# fresnel
+# build/pathtracing testcases/checkerboard_one_ball.txt fresnel/checkerboard_one_ball mis $SPP $BVH
+# build/pathtracing testcases/no_fresnel_CMP_checkerboard_one_ball.txt fresnel/no_fresnel_CMP_checkerboard_one_ball mis $SPP $BVH
 
 # go
 build/pathtracing testcases/go.txt go/go mis $SPP $BVH
